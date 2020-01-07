@@ -154,6 +154,18 @@ public class Memberentity implements Serializable {
     public Memberentity() {
     }
 
+    public Memberentity(Integer age, Integer income, String address, String name, String passwordhash, String passwordsalt, String phone, String securityanswer, Integer securityquestion) {
+        this.age = age;
+        this.income = income;
+        this.address = address;
+        this.name = name;
+        this.passwordhash = passwordhash;
+        this.passwordsalt = passwordsalt;
+        this.phone = phone;
+        this.securityanswer = securityanswer;
+        this.securityquestion = securityquestion;
+    }
+    
     public Memberentity(Long id) {
         this.id = id;
     }
