@@ -49,7 +49,7 @@ public class ECommerce_MemberEditProfileServlet extends HttpServlet {
             session.setAttribute("bool", "false");
         }
         
-        response.sendRedirect("ECommerce_GetMemberServlet");
+        response.sendRedirect("ECommerce_GetMember");
         
     }
     

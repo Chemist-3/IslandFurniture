@@ -2,25 +2,21 @@ package B_servlets;
 
 import HelperClasses.Member;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.URLDecoder;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.List;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@WebServlet(name = "ECommerce_GetMemberServlet", urlPatterns = {"/ECommerce_GetMemberServlet"})
-public class ECommerce_GetMemberServlet extends HttpServlet {
+@WebServlet(name = "ECommerce_GetMember", urlPatterns = {"/ECommerce_GetMember"})
+public class ECommerce_GetMember extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -31,6 +27,9 @@ public class ECommerce_GetMemberServlet extends HttpServlet {
         
         Member member = retrieveMemberDetailsRESTful(memberEmail);
         session.setAttribute("member", member);
+        
+        String memberName = member.getName();
+        session.setAttribute("memberName", memberName);
         
         // If redircted from ECommerce_MemberEditProfileServlet
         // For message display on memberProfile.jsp
