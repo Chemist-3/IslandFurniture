@@ -213,21 +213,21 @@ public class MemberentityFacadeREST extends AbstractFacade<Memberentity> {
             return "fail";
         }
     }
-	
-	@GET
+
+    @GET
     @Path("getMemberDetails")
     @Produces("application/json")
     public Response getMemberDetails(@QueryParam("memberEmail") String email) {
-        
+
         try {
             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/islandfurniture-it07?zeroDateTimeBehavior=convertToNull&user=root&password=12345");
             String stmt = "SELECT * FROM memberentity m WHERE m.EMAIL=?";
             PreparedStatement ps = conn.prepareStatement(stmt);
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
-            
+
             rs.next();
-            
+
             Member member = new Member();
             member.setId(rs.getLong("ID"));
             member.setName(rs.getString("NAME"));
@@ -241,13 +241,13 @@ public class MemberentityFacadeREST extends AbstractFacade<Memberentity> {
             member.setSecurityAnswer(rs.getString("SECURITYANSWER"));
             member.setAge(rs.getInt("AGE"));
             member.setIncome(rs.getInt("INCOME"));
-            
+
             return Response.status(200).entity(member).build();
-		} catch (Exception ex) {
-					ex.printStackTrace();
-					return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-				}
-			}
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
 
     @PUT

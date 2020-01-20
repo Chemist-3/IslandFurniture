@@ -87,6 +87,31 @@ public class CountryentityFacadeREST extends AbstractFacade<Countryentity> {
         return countryList;
     }
     
+    @GET
+    @Path("getQuantity")
+    @Produces({"application/js  on"})
+    public Response getQuantity(@QueryParam("countryID") Long countryID, @QueryParam("SKU") String SKU){
+        System.out.println("RESTful: getQuantity() called with countryID=" + countryID + " and SKU=" + SKU);
+        try{
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/islandfurniture-it07?zeroDateTimeBehavior=convertToNull&user=root&password=12345");
+            String stmt = "Select li.QUANTITY from country_ecommerce c, warehouseentity w, storagebinentity sb, storagebinentity_lineitementity sbli, lineitementity li, itementity i where li.ITEM_ID=i.ID and sbli.lineItems_ID=li.ID and sb.ID=sbli.StorageBinEntity_ID and w.id=sb.WAREHOUSE_ID and c.warehouseentity_id=w.id and sb.type<>'Outbound' and c.CountryEntity_ID=? and i.SKU=?";
+            PreparedStatement ps = conn.prepareStatement(stmt);
+            ps.setString(1, Long.toString(countryID));
+            ps.setString(2, SKU);
+            ResultSet rs = ps.executeQuery();
+            
+            rs.next();
+            
+            int quantity = rs.getInt("QUANTITY");
+            System.out.println("quantity size: " + quantity);
+            return Response.ok(quantity + "", MediaType.APPLICATION_JSON).build();
+            
+        }catch (Exception ex){
+            ex.printStackTrace();
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+    }
+    
     @Override
     protected EntityManager getEntityManager() {
         return em;
