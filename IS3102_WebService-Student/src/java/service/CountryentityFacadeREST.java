@@ -89,7 +89,7 @@ public class CountryentityFacadeREST extends AbstractFacade<Countryentity> {
     
     @GET
     @Path("getQuantity")
-    @Produces({"application/js  on"})
+    @Produces({"application/json"})
     public Response getQuantity(@QueryParam("countryID") Long countryID, @QueryParam("SKU") String SKU){
         System.out.println("RESTful: getQuantity() called with countryID=" + countryID + " and SKU=" + SKU);
         try{

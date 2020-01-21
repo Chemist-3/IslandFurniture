@@ -10,8 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-@WebServlet(name = "ECommerce_RemoveItemFromListServlet", urlPatterns = {"/ECommerce_RemoveItemFromListServlet"})
-public class ECommerce_RemoveItemFromListServlet extends HttpServlet {
+@WebServlet(name = "ECommerce_MinusFurnitureToListServlet", urlPatterns = {"/ECommerce_MinusFurnitureToListServlet"})
+public class ECommerce_MinusFurnitureToListServlet extends HttpServlet {
 
     private String URLprefix = "";
 
@@ -19,29 +19,38 @@ public class ECommerce_RemoveItemFromListServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try {
-            String[] deleteArr = request.getParameterValues("delete");
-            HttpSession session = request.getSession();
 
+            HttpSession session = request.getSession();
             URLprefix = (String) session.getAttribute("URLprefix");
             if (URLprefix == null) {
                 response.sendRedirect("/IS3102_Project-war/B/selectCountry.jsp");
             }
 
+            String SKU = request.getParameter("SKU");
+            System.out.println("Minus Item: " + SKU + " from ShoppingCart");
             ArrayList<ShoppingCartLineItem> shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
-            if (deleteArr != null) {
-                for (String SKUremove : deleteArr) {
-                    System.out.println("Removing Item(s): " + SKUremove + " from ShoppingCart");
-                    ShoppingCartLineItem lineitem = new ShoppingCartLineItem();
-                    lineitem.setSKU(SKUremove);
-                    shoppingCart.remove(lineitem);
-                }
-                session.setAttribute("shoppingCart", shoppingCart);
-                response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?goodMsg=Successfully removed: " + deleteArr.length + " item(s).");
+            if (shoppingCart == null) {
+                response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error reducing item quantity.");
             } else {
-                response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Nothing selected.");
+                for (ShoppingCartLineItem item : shoppingCart) {
+                    if (item.getSKU().equals(SKU)) {
+                        if (item.getQuantity() > 1) {
+                            item.setQuantity(item.getQuantity() - 1);
+                        } else {
+                            response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error. Quantity cannot be less than 1.");
+                            return;
+                        }
+                        break;
+                    }
+
+                }
             }
+            session.setAttribute("shoppingCart", shoppingCart);
+            response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?goodMsg=Item quantity reduced successfully!");
+
         } catch (Exception ex) {
             ex.printStackTrace();
+            response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error reducing item quantity.");
         }
     }
 

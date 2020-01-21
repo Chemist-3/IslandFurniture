@@ -25,20 +25,17 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try{
-            
-       
+        try {
+
             HttpSession session = request.getSession();
 
             URLprefix = (String) session.getAttribute("URLprefix");
-                if (URLprefix == null) {
-                    response.sendRedirect("/IS3102_Project-war/B/selectCountry.jsp");
-                    return;
-                }
-
+            if (URLprefix == null) {
+                response.sendRedirect("/IS3102_Project-war/B/selectCountry.jsp");
+                return;
+            }
 
             Long countryID = (Long) session.getAttribute("countryID");
-
 
             String id = request.getParameter("id");
             String SKU = request.getParameter("SKU");
@@ -55,7 +52,7 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
             lineItem.setCountryID(countryID);
             lineItem.setQuantity(1);
 
-            int quantity = checkQuantity(countryID, SKU);
+            int quantity = checkQuantityRESTful(countryID, SKU);
 
             ArrayList<ShoppingCartLineItem> shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
 
@@ -78,7 +75,6 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
                         } else {
                             item.setQuantity(item.getQuantity() + 1);
                         }
-                        System.out.println("item quantity: " + item.getQuantity());
                         break;
                     }
                 }
@@ -86,14 +82,14 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
             session.setAttribute("shoppingCart", shoppingCart);
 
             response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?goodMsg=Item successfully added into the cart!");
-        }catch (Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
-            response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error while adding iten to cart.");
+            response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error while adding item to cart.");
         }
 
     }
 
-    public int checkQuantity(Long countryID, String SKU) {
+    public int checkQuantityRESTful(Long countryID, String SKU) {
         Client client = ClientBuilder.newClient();
         WebTarget target = client
                 .target("http://localhost:8080/IS3102_WebService-Student/webresources/entity.countryentity")
@@ -103,15 +99,14 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
         Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
         invocationBuilder.header("some-header", "true");
         Response response = invocationBuilder.get();
-        System.out.println("status: " + response.getStatus());
 
         if (response.getStatus() != 200) {
             return 0;
         }
-        
+
         String quantity = (String) response.readEntity(String.class);
         return Integer.parseInt(quantity);
-        
+
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
