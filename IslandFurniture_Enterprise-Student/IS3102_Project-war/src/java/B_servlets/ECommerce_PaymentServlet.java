@@ -26,6 +26,7 @@ public class ECommerce_PaymentServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try {
+            
             HttpSession session = request.getSession();
 
             URLprefix = (String) session.getAttribute("URLprefix");
@@ -36,7 +37,6 @@ public class ECommerce_PaymentServlet extends HttpServlet {
 
             Long countryID = (Long) session.getAttribute("countryID");
             Member member = (Member) session.getAttribute("member");
-
             Long memberId = member.getId();
             
             ArrayList<ShoppingCartLineItem> shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
@@ -58,6 +58,7 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                 int quantity = item.getQuantity();
                 //call ws to insert lineitem and salesrecordentity_lineitementity based on salesRecordID and lineItemID
                 String result = createECommerceLineItemRecordRESTful(salesRecordID, itemID, quantity, countryID);
+                
                 if (result != null) {
                     System.out.println("createECommerceLineItemRecord successful");
                 } else {
@@ -86,7 +87,7 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                 .queryParam("countryID", countryID);
         Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
         Response response = invocationBuilder.get();
-        System.out.println("status: " + response.getStatus());
+        System.out.println("createECommerceTransactionRecordRESTful() status: " + response.getStatus());
 
         if (response.getStatus() != 201) {
             return null;
@@ -106,13 +107,13 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                 .queryParam("countryID", countryID);
         Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
         Response response = invocationBuilder.get();
-        System.out.println("status: " + response.getStatus());
+        System.out.println("createECommerceLineItemRecordRESTful() status: " + response.getStatus());
 
         if (response.getStatus() != 201) {
             return null;
         }
-        return "1";
-        
+        String result = response.readEntity(String.class);
+        return result;
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
