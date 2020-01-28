@@ -22,6 +22,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import model.dbaccess;
 
 @Stateless
 @Path("entity.storeentity")
@@ -30,6 +31,8 @@ public class StoreentityFacadeREST extends AbstractFacade<Storeentity> {
     @PersistenceContext(unitName = "WebService")
     private EntityManager em;
 
+    private dbaccess db = new dbaccess();
+    
     public StoreentityFacadeREST() {
         super(Storeentity.class);
     }
@@ -84,19 +87,12 @@ public class StoreentityFacadeREST extends AbstractFacade<Storeentity> {
     @Path("getQuantity")
     @Produces({"application/json"})
     public Response getItemQuantityOfStore(@QueryParam("storeID") Long storeID, @QueryParam("SKU") String SKU) {
+        System.out.println("RESTful: getQuantity() called with storeID=" + storeID + " and SKU=" + SKU);
         try {
-            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/islandfurniture-it07?zeroDateTimeBehavior=convertToNull&user=root&password=12345");
-            String stmt = "SELECT sum(l.QUANTITY) as sum FROM storeentity s, warehouseentity w, storagebinentity sb, storagebinentity_lineitementity sbli, lineitementity l, itementity i where s.WAREHOUSE_ID=w.ID and w.ID=sb.WAREHOUSE_ID and sb.ID=sbli.StorageBinEntity_ID and sbli.lineItems_ID=l.ID and l.ITEM_ID=i.ID and s.ID=? and i.SKU=?";
-            PreparedStatement ps = conn.prepareStatement(stmt);
-            ps.setLong(1, storeID);
-            ps.setString(2, SKU);
-            ResultSet rs = ps.executeQuery();
-            int qty = 0;
-            if (rs.next()) {
-                qty = rs.getInt("sum");
-            }
+            int qty = db.getQuantityWithStoreID(storeID, SKU);
 
             return Response.ok(qty + "", MediaType.APPLICATION_JSON).build();
+
         } catch (Exception ex) {
             ex.printStackTrace();
             return Response.status(Response.Status.NOT_FOUND).build();

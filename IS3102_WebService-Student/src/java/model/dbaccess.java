@@ -4,12 +4,45 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 public class dbaccess {
 
     private String jbdc_path = "jdbc:mysql://localhost:3306/islandfurniture-it07?zeroDateTimeBehavior=convertToNull&user=root&password=12345";
 
+    public int getQuantityWithStoreID(Long storeID, String SKU) throws SQLException {
+        int quantity = 0;
+        Connection conn = DriverManager.getConnection(jbdc_path);
+        String stmt = "SELECT sum(l.QUANTITY) as sum FROM storeentity s, warehouseentity w, storagebinentity sb, storagebinentity_lineitementity sbli, lineitementity l, itementity i where s.WAREHOUSE_ID=w.ID and w.ID=sb.WAREHOUSE_ID and sb.ID=sbli.StorageBinEntity_ID and sbli.lineItems_ID=l.ID and l.ITEM_ID=i.ID and s.ID=? and i.SKU=?";
+        PreparedStatement ps = conn.prepareStatement(stmt);
+        ps.setLong(1, storeID);
+        ps.setString(2, SKU);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            quantity = rs.getInt("sum");
+        }
+        conn.close();
+        return quantity;
+    }
+
+    public int getQuantityWithCountryID(Long countryID, String SKU) throws SQLException {
+        int quantity = 0;
+        Connection conn = DriverManager.getConnection(jbdc_path);
+        String stmt = "Select li.QUANTITY from country_ecommerce c, warehouseentity w, storagebinentity sb, storagebinentity_lineitementity sbli, lineitementity li, itementity i where li.ITEM_ID=i.ID and sbli.lineItems_ID=li.ID and sb.ID=sbli.StorageBinEntity_ID and w.id=sb.WAREHOUSE_ID and c.warehouseentity_id=w.id and sb.type<>'Outbound' and c.CountryEntity_ID=? and i.SKU=?";
+        PreparedStatement ps = conn.prepareStatement(stmt);
+        ps.setString(1, Long.toString(countryID));
+        ps.setString(2, SKU);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            quantity = rs.getInt("QUANTITY");
+        }
+        conn.close();
+        return quantity;
+    }
+    
     public ResultSet getCountryStoreIDAndCurrency(Long countryID) {
         try {
             Connection conn = DriverManager.getConnection(jbdc_path);
@@ -107,8 +140,6 @@ public class dbaccess {
             ps.setLong(2, Long.parseLong(itemID));
             ResultSet rs = ps.executeQuery();
 
-            // While loop for fun and laughter, peace and joy
-            // But this does not bring joy
             while (rs.next()) {
                 Long lineItemID = rs.getLong(1);
                 int qtyRemaining = rs.getInt(2);

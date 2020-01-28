@@ -71,7 +71,7 @@ public class ECommerceFacadeREST {
                 storeID = rs.getString("storeID");
             }
             if (currency.equals("") || storeID.equals("")) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
 
             Long generatedKey = db.insertSalesrecordentity(amountPaid, currentTime, currency, (new Date()).getTime(), memberID, Integer .parseInt(storeID));
@@ -79,11 +79,11 @@ public class ECommerceFacadeREST {
             if (generatedKey > 0L) {
                 return Response.status(Response.Status.CREATED).entity(generatedKey + "").build();
             } else {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
         } catch (Exception ex) {
             ex.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
 
@@ -100,7 +100,7 @@ public class ECommerceFacadeREST {
 
             int result = db.insertSalesrecordentity_lineitementity(salesRecordID, lineItemId);
             if (result == 0) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
             
             db.updateQuantity(itemID, quantity, countryID);
@@ -111,7 +111,7 @@ public class ECommerceFacadeREST {
             //return Response.ok(generatedKey + "", MediaType.APPLICATION_JSON).status(Response.Status.CREATED).build();
         } catch (Exception ex) {
             ex.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
 }

@@ -140,7 +140,7 @@
                                                                 </a>
                                                             </td>
                                                             <td class="product-name">
-                                                                <a class="productDetails" href="furnitureProductDetails.jsp"><%=item.getName()%></a>
+                                                                <a class="productDetails" href="furnitureProductDetails.jsp?sku=<%=item.getSKU()%>"><%=item.getName()%></a>
                                                             </td>
                                                             <td class="product-price">
                                                                 $<span class="amount" id="price<%=item.getSKU()%>">
@@ -177,10 +177,11 @@
                                                             <td></td>
                                                             <td></td>
                                                             <td class="product-subtotal" style="font-weight: bold">
-                                                                Total: <%=finalPrice%>0
+                                                                Total: 
                                                             </td>
                                                             <td class="product-subtotal">
                                                                 $<span class="amount" id="finalPrice" name="finalPrice">
+                                                                    <%=finalPrice%>0
 
                                                                 </span>
                                                             </td>

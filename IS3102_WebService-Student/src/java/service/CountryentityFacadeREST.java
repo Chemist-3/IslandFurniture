@@ -9,6 +9,7 @@ import javax.persistence.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import model.dbaccess;
 
 @Stateless
 @Path("entity.countryentity")
@@ -17,6 +18,8 @@ public class CountryentityFacadeREST extends AbstractFacade<Countryentity> {
     @PersistenceContext(unitName = "WebService")
     private EntityManager em;
 
+    private dbaccess db = new dbaccess();
+    
     public CountryentityFacadeREST() {
         super(Countryentity.class);
     }
@@ -92,19 +95,10 @@ public class CountryentityFacadeREST extends AbstractFacade<Countryentity> {
     @Produces({"application/json"})
     public Response getQuantity(@QueryParam("countryID") Long countryID, @QueryParam("SKU") String SKU){
         System.out.println("RESTful: getQuantity() called with countryID=" + countryID + " and SKU=" + SKU);
-        try{
-            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/islandfurniture-it07?zeroDateTimeBehavior=convertToNull&user=root&password=12345");
-            String stmt = "Select li.QUANTITY from country_ecommerce c, warehouseentity w, storagebinentity sb, storagebinentity_lineitementity sbli, lineitementity li, itementity i where li.ITEM_ID=i.ID and sbli.lineItems_ID=li.ID and sb.ID=sbli.StorageBinEntity_ID and w.id=sb.WAREHOUSE_ID and c.warehouseentity_id=w.id and sb.type<>'Outbound' and c.CountryEntity_ID=? and i.SKU=?";
-            PreparedStatement ps = conn.prepareStatement(stmt);
-            ps.setString(1, Long.toString(countryID));
-            ps.setString(2, SKU);
-            ResultSet rs = ps.executeQuery();
+        try{         
+            int qty = db.getQuantityWithCountryID(countryID, SKU);
             
-            rs.next();
-            
-            int quantity = rs.getInt("QUANTITY");
-            System.out.println("quantity size: " + quantity);
-            return Response.ok(quantity + "", MediaType.APPLICATION_JSON).build();
+            return Response.ok(qty + "", MediaType.APPLICATION_JSON).build();
             
         }catch (Exception ex){
             ex.printStackTrace();
