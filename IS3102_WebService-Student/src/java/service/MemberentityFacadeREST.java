@@ -37,6 +37,7 @@ import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import model.dbaccess;
 
 @Stateless
 @Path("entity.memberentity")
@@ -45,6 +46,8 @@ public class MemberentityFacadeREST extends AbstractFacade<Memberentity> {
     @PersistenceContext(unitName = "WebService")
     private EntityManager em;
 
+    private dbaccess db = new dbaccess();
+    
     public MemberentityFacadeREST() {
         super(Memberentity.class);
     }
@@ -220,12 +223,7 @@ public class MemberentityFacadeREST extends AbstractFacade<Memberentity> {
     public Response getMemberDetails(@QueryParam("memberEmail") String email) {
 
         try {
-            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/islandfurniture-it07?zeroDateTimeBehavior=convertToNull&user=root&password=12345");
-            String stmt = "SELECT * FROM memberentity m WHERE m.EMAIL=?";
-            PreparedStatement ps = conn.prepareStatement(stmt);
-            ps.setString(1, email);
-            ResultSet rs = ps.executeQuery();
-
+            ResultSet rs = db.getMemberEntity(email);
             rs.next();
 
             Member member = new Member();
@@ -274,7 +272,6 @@ public class MemberentityFacadeREST extends AbstractFacade<Memberentity> {
             if(result > 0) {
                 return Response.status(200).build();
             }else{
-                System.out.println("SQL Error");
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
             }
         } catch (Exception ex) {

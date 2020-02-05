@@ -15,6 +15,7 @@
             double finalPrice = 0.0;
         %>
         <script>
+
             var totalPrice = 0;
             for (var i = 0, n = shoppingCart.getItems().size; i < n; i++) {
                 totalPrice += shoppingCart.getItems().get(i).get
@@ -59,21 +60,72 @@
                     checkboxes[i].checked = source.checked;
                 }
             }
+
             function checkOut() {
                 $(".plus").prop("disabled", true);
                 $(".minus").prop("disabled", true);
                 $("#btnCheckout").prop("disabled", true);
                 $("#btnRemove").prop("disabled", true);
                 $(".productDetails").removeAttr("href");
-                $("html, body").animate({scrollTop: $(document).height() / 3}, "slow");
-                $("#makePaymentForm").show("slow", function () {
-                });
+                $("#paypalSandbox").modal({backdrop: 'static', keyboard: false});
+//                $("html, body").animate({scrollTop: $(document).height() / 3}, "slow");
+//                $("#makePaymentForm").show("slow", function () {   
+//                });
             }
             function makePayment() {
-                window.event.returnValue = true;
-                document.makePaymentForm.action = "../../ECommerce_PaymentServlet";
-                document.makePaymentForm.submit();
+
+                // Add code
+                checkboxes = document.getElementsByName('delete');
+                var numOfTicks = 0;
+                for (var i = 0, n = checkboxes.length; i < n; i++) {
+                    if (checkboxes[i].checked) {
+                        numOfTicks++;
+                    }
+                }
+                if (checkboxes.length == 0 || numOfTicks == 0) {
+                    window.event.returnValue = true;
+                    document.shoppingCart.action = "/IS3102_Project-war/B/SG/shoppingCart.jsp?errMsg=No item(s) selected for payment.";
+                    document.shoppingCart.submit();
+                } else {
+                    window.event.returnValue = true;
+                    document.shoppingCart.action = "../../ECommerce_PaymentServlet";
+                    document.shoppingCart.submit();
+                }
             }
+
+        </script>
+
+        <script>
+            paypal.Buttons({
+                createOrder: function (data, actions) {
+                    return actions.order.create({
+                        purchase_units: [{
+                                amount: {
+                                    total: '30.00',
+                                    currency: 'USD',
+                                }
+                            }]
+                    });
+                },
+                onApprove: function (data, actions) {
+                    return actions.order.capture().then(function (details) {
+                        alert('Transaction completed by ' + details.payer.name.given_name);
+                        // Call your server to save the transaction
+                        return fetch('/paypal-transaction-complete', {
+                            method: 'post',
+                            headers: {
+                                'content-type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                orderID: data.orderID
+                            })
+                        });
+                    });
+                }
+            }).render('#paypal-button-container');
+
+
+
         </script>
 
         <div class="body">
@@ -195,74 +247,74 @@
                                                 <%} else {%>
                                                 <div align="right"><a href="#checkoutModal" data-toggle="modal"><button disabled="true" id="btnCheckout" class="btn btn-primary btn-lg">Check Out</button></a></div>
                                                 <%}%>
-                                            </form>
-
-
-                                            <form id="makePaymentForm" name="makePaymentForm" method="post" hidden>
-                                                <div class="col-md-8">
-                                                    <br>
-                                                    <table>
-                                                        <tbody>
-                                                            <tr>
-                                                        <h4 style="text-align: left">Credit Card Payment Details</h4>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="padding: 5px">
-                                                                <label>Name on Card: </label>
-                                                            </td>
-                                                            <td style="padding: 5px">
-                                                                <input type="text" class="input-text text" title="name"id="txtName" required>                                                            
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="padding: 5px">
-                                                                <label>Card Number: </label>
-                                                            </td>
-                                                            <td style="padding: 5px">
-                                                                <input type="text" class="input-text text " title="cardno" id="txtCardNo" required>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="padding: 5px">
-                                                                <label>CVV/CVC2: </label>
-                                                            </td>
-                                                            <td style="padding: 5px">
-                                                                <input type="text" class="input-text text " title="securitycode" id="txtSecuritycode" required>
-                                                            </td>
-                                                        </tr>
-
-                                                        <tr>
-                                                            <td style="padding: 5px;">
-                                                                <label>Expiry Date: </label>
-                                                            </td>
-                                                            <td style="width: 300px">
-                                                                <select style="width: 120px; display: inline-block" class="dropdown-header" title="Month">
-                                                                    <option>January</option>
-                                                                    <option>February</option>
-                                                                    <option>March</option>
-                                                                    <option>April</option>
-                                                                    <option>May</option>
-                                                                    <option>June</option>
-                                                                    <option>July</option>
-                                                                    <option>August</option>
-                                                                    <option>September</option>
-                                                                    <option>October</option>
-                                                                    <option>November</option>
-                                                                    <option>December</option>
-                                                                </select>
-                                                                <input type="text" style="width: 60px" class="input-text text" title="year" id="year" required>(eg: 2015)                                                        
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="">
-                                                            </td>
-                                                            <td style="padding-top: 20px">
-                                                                <div align="right"><a href="#makePaymentModal" data-toggle="modal"><button class="btn btn-primary">Make Payment</button></a></div>
-                                                            </td>
-                                                        </tr>
-                                                        </tbody></table>
-                                                </div>
-                                            </form>
+                                                <!--                                            </form>
+                                                
+                                                                                            <form id="makePaymentForm" name="makePaymentForm" method="post" hidden>
+                                                                                                <div class="col-md-8">
+                                                                                                    <br>
+                                                                                                    <table>
+                                                                                                        <tbody>
+                                                                                                            <tr>
+                                                                                                        <h4 style="text-align: left">Credit Card Payment Details</h4>
+                                                                                                        </tr>
+                                                                                                        <tr>
+                                                                                                            <td style="padding: 5px">
+                                                                                                                <label>Name on Card: </label>
+                                                                                                            </td>
+                                                                                                            <td style="padding: 5px">
+                                                                                                                <input type="text" class="input-text text" title="name"id="txtName" required>                                                            
+                                                                                                            </td>
+                                                                                                        </tr>
+                                                                                                        <tr>
+                                                                                                            <td style="padding: 5px">
+                                                                                                                <label>Card Number: </label>
+                                                                                                            </td>
+                                                                                                            <td style="padding: 5px">
+                                                                                                                <input type="text" class="input-text text " title="cardno" id="txtCardNo" required>
+                                                                                                            </td>
+                                                                                                        </tr>
+                                                                                                        <tr>
+                                                                                                            <td style="padding: 5px">
+                                                                                                                <label>CVV/CVC2: </label>
+                                                                                                            </td>
+                                                                                                            <td style="padding: 5px">
+                                                                                                                <input type="text" class="input-text text " title="securitycode" id="txtSecuritycode" required>
+                                                                                                            </td>
+                                                                                                        </tr>
+                                                
+                                                                                                        <tr>
+                                                                                                            <td style="padding: 5px;">
+                                                                                                                <label>Expiry Date: </label>
+                                                                                                            </td>
+                                                                                                            <td style="width: 300px">
+                                                                                                                <select style="width: 120px; display: inline-block" class="dropdown-header" title="Month">
+                                                                                                                    <option>January</option>
+                                                                                                                    <option>February</option>
+                                                                                                                    <option>March</option>
+                                                                                                                    <option>April</option>
+                                                                                                                    <option>May</option>
+                                                                                                                    <option>June</option>
+                                                                                                                    <option>July</option>
+                                                                                                                    <option>August</option>
+                                                                                                                    <option>September</option>
+                                                                                                                    <option>October</option>
+                                                                                                                    <option>November</option>
+                                                                                                                    <option>December</option>
+                                                                                                                </select>
+                                                                                                                <input type="text" style="width: 60px" class="input-text text" title="year" id="year" required>(eg: 2015)                                                        
+                                                                                                            </td>
+                                                                                                        </tr>
+                                                                                                        <tr>
+                                                                                                            <td style="">
+                                                                                                            </td>
+                                                                                                            <td style="padding-top: 20px">
+                                                                                                                <div align="right"><a href="#makePaymentModal" data-toggle="modal"><button class="btn btn-primary">Make Payment</button></a></div>
+                                                                                                            </td>
+                                                                                                        </tr>
+                                                                                                        </tbody></table>
+                                                                                                </div>
+                                                
+                                                                                            </form>-->
                                         </div>
                                     </div>
                                 </div>
@@ -322,6 +374,24 @@
                 </div>
             </div>  
 
+            <div role="dialog" class="modal fade" id="paypalSandbox">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4>Payment</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div id="paypal-button-container"></div>
+
+                            <script>
+                                paypal.Buttons().render('#paypal-button-container');
+                                // This function displays Smart Payment Buttons on your web page.
+                            </script>
+                        </div>
+                    </div>
+                </div>
+            </div>  
+
             <jsp:include page="footer.html" />
 
             <!-- Theme Initializer -->
@@ -333,6 +403,7 @@
             <script src="../../vendor/rs-plugin/js/jquery.themepunch.revolution.js"></script>
             <script src="../../vendor/circle-flip-slideshow/js/jquery.flipshow.js"></script>
             <script src="../../js/views/view.home.js"></script>   
+            <script src="https://www.paypal.com/sdk/js?client-id=AdZRaCXgr5Hhjz_yYSAWeyO7IibtTt5S7r3GBBLY8bU1vlP8VqqLcjV2H1jpSIesz6bPxHoF8qKQSn1e"></script>
         </div>
     </body>
 </html>

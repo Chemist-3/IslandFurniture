@@ -40,12 +40,35 @@ public class ECommerce_PaymentServlet extends HttpServlet {
             Long memberId = member.getId();
             
             ArrayList<ShoppingCartLineItem> shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
-
+            String[] checkoutArr = request.getParameterValues("delete");
+            
+            ArrayList<ShoppingCartLineItem> checkoutCart = new ArrayList<>();
+            
+            
+            
+            if (checkoutArr != null) {
+                for (String checkoutItemSKU : checkoutArr) {
+                    for (ShoppingCartLineItem item : shoppingCart){
+                        if (item.getSKU().equals(checkoutItemSKU)){
+                            checkoutCart.add(item);
+                            break;
+                        }
+                    }
+                }
+            } else {
+                response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error checking out.");
+            }
             double amountPaid = 0.0;
-            for (ShoppingCartLineItem item : shoppingCart) {
+            for (ShoppingCartLineItem item : checkoutCart) {
                 amountPaid += item.getPrice() * item.getQuantity();
             }
+            
+            
+            
             String salesRecordID = createECommerceTransactionRecordRESTful(memberId, amountPaid, countryID);
+            
+            
+            
             if (salesRecordID == null) {
                 //error
                 System.out.println("Error creating ECommerce Transaction Record. Sales record ID returned 0.");
@@ -53,14 +76,21 @@ public class ECommerce_PaymentServlet extends HttpServlet {
 
                 return;
             }
-            for (ShoppingCartLineItem item : shoppingCart) {
+            for (ShoppingCartLineItem item : checkoutCart) {
                 String itemID = item.getId();
                 int quantity = item.getQuantity();
+                
+                
                 //call ws to insert lineitem and salesrecordentity_lineitementity based on salesRecordID and lineItemID
                 String result = createECommerceLineItemRecordRESTful(salesRecordID, itemID, quantity, countryID);
                 
+                
+                
                 if (result != null) {
                     System.out.println("createECommerceLineItemRecord successful");
+                    for (ShoppingCartLineItem removeItem : checkoutCart){
+                        shoppingCart.remove(removeItem);
+                    }
                 } else {
                     System.out.println("Error creating createECommerceLineItemRecord, returned null.");
                     response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error checking out.");
@@ -68,7 +98,7 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                 }
             }
 
-            session.setAttribute("shoppingCart", null);
+            session.setAttribute("shoppingCart", shoppingCart);
 
             response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?goodMsg=Thank you for shopping at Island Furniture. You have checkout successfully!");
         } catch (Exception ex) {

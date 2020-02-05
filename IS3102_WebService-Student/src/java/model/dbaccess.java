@@ -42,144 +42,129 @@ public class dbaccess {
         conn.close();
         return quantity;
     }
-    
-    public ResultSet getCountryStoreIDAndCurrency(Long countryID) {
-        try {
-            Connection conn = DriverManager.getConnection(jbdc_path);
-            String stmt = "SELECT c.currency, s.ID as storeID FROM countryentity c,country_ecommerce ce, storeentity s "
-                    + "where ce.WarehouseEntity_ID=s.WAREHOUSE_ID and c.ID=ce.CountryEntity_ID and c.ID=?;";
-            PreparedStatement ps = conn.prepareStatement(stmt);
-            ps.setLong(1, countryID);
-            ResultSet rs = ps.executeQuery();
 
-            return rs;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return null;
-        }
+    public ResultSet getCountryStoreIDAndCurrency(Long countryID) throws SQLException {
+        Connection conn = DriverManager.getConnection(jbdc_path);
+        String stmt = "SELECT c.currency, s.ID as storeID FROM countryentity c,country_ecommerce ce, storeentity s "
+                + "where ce.WarehouseEntity_ID=s.WAREHOUSE_ID and c.ID=ce.CountryEntity_ID and c.ID=?;";
+        PreparedStatement ps = conn.prepareStatement(stmt);
+        ps.setLong(1, countryID);
+        ResultSet rs = ps.executeQuery();
+
+        return rs;
     }
 
-    public Long insertSalesrecordentity(Double amountPaid, String currentTime, String currency, 
-            Long receiptNumber, Long memberID, int storeID) {
+    public Long insertSalesrecordentity(Double amountPaid, String currentTime, String currency,
+            Long receiptNumber, Long memberID, int storeID) throws SQLException {
 
         Long generatedKey = 0L;
 
-        try {
-            Connection conn = DriverManager.getConnection(jbdc_path);
-            String stmt = "INSERT INTO salesrecordentity (`AMOUNTDUE`, `AMOUNTPAID`, `AMOUNTPAIDUSINGPOINTS`, "
-                    + "`CREATEDDATE`, `CURRENCY`, `LOYALTYPOINTSDEDUCTED`, `POSNAME`, `RECEIPTNO`, "
-                    + "`SERVEDBYSTAFF`, `MEMBER_ID`, `STORE_ID`) "
-                    + "VALUES ('" + amountPaid + "', '" + amountPaid + "', '0', '" + currentTime + "', '" + currency + "', "
-                    + "'0', 'ECommerce', '" + receiptNumber + "', 'ECommerce', '" + memberID + "', '" + storeID + "')";
+        Connection conn = DriverManager.getConnection(jbdc_path);
+        String stmt = "INSERT INTO salesrecordentity (`AMOUNTDUE`, `AMOUNTPAID`, `AMOUNTPAIDUSINGPOINTS`, "
+                + "`CREATEDDATE`, `CURRENCY`, `LOYALTYPOINTSDEDUCTED`, `POSNAME`, `RECEIPTNO`, "
+                + "`SERVEDBYSTAFF`, `MEMBER_ID`, `STORE_ID`) "
+                + "VALUES ('" + amountPaid + "', '" + amountPaid + "', '0', '" + currentTime + "', '" + currency + "', "
+                + "'0', 'ECommerce', '" + receiptNumber + "', 'ECommerce', '" + memberID + "', '" + storeID + "')";
 
-            //RETURN_GENERATED_KEYS to get ID without running the database again
-            PreparedStatement ps = conn.prepareStatement(stmt, Statement.RETURN_GENERATED_KEYS);
-            ps.executeUpdate();
+        //RETURN_GENERATED_KEYS to get ID without running the database again
+        PreparedStatement ps = conn.prepareStatement(stmt, Statement.RETURN_GENERATED_KEYS);
+        ps.executeUpdate();
 
-            ResultSet rs = ps.getGeneratedKeys();
-            while (rs.next()) {
-                generatedKey = rs.getLong(1);
-            }
-            return generatedKey;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return -1L;
+        ResultSet rs = ps.getGeneratedKeys();
+        while (rs.next()) {
+            generatedKey = rs.getLong(1);
         }
+        return generatedKey;
     }
 
-    public Long insertLineitementity(int quantity, String itemID) {
+    public Long insertLineitementity(int quantity, String itemID) throws SQLException {
         Long lineItemId = 0L;
-        try {
-            Connection conn = DriverManager.getConnection(jbdc_path);
-            String stmt = "INSERT INTO lineitementity (`QUANTITY`, `ITEM_ID`) VALUES (?, ?);";
-            PreparedStatement ps = conn.prepareStatement(stmt, Statement.RETURN_GENERATED_KEYS);
-            ps.setInt(1, quantity);
-            ps.setLong(2, Long.parseLong(itemID));
-            ps.executeUpdate();
+        Connection conn = DriverManager.getConnection(jbdc_path);
+        String stmt = "INSERT INTO lineitementity (`QUANTITY`, `ITEM_ID`) VALUES (?, ?);";
+        PreparedStatement ps = conn.prepareStatement(stmt, Statement.RETURN_GENERATED_KEYS);
+        ps.setInt(1, quantity);
+        ps.setLong(2, Long.parseLong(itemID));
+        ps.executeUpdate();
 
-            ResultSet rs = ps.getGeneratedKeys();
-            while (rs.next()) {
-                lineItemId = rs.getLong(1);
-            }
-            return lineItemId;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return -1L;
+        ResultSet rs = ps.getGeneratedKeys();
+        while (rs.next()) {
+            lineItemId = rs.getLong(1);
         }
+        return lineItemId;
     }
 
-    public int insertSalesrecordentity_lineitementity(String salesRecordID, Long lineItemId) {
-        try {
-            Connection conn = DriverManager.getConnection(jbdc_path);
-            String stmt = "INSERT INTO salesrecordentity_lineitementity (`SalesRecordEntity_ID`, `itemsPurchased_ID`) VALUES (?, ?);";
-            PreparedStatement ps = conn.prepareStatement(stmt);
-            ps.setLong(1, Long.parseLong(salesRecordID));
-            ps.setLong(2, lineItemId);
-            int result = ps.executeUpdate();
-            return result;
+    public int insertSalesrecordentity_lineitementity(String salesRecordID, Long lineItemId) throws SQLException {
 
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return -1;
-        }
+        Connection conn = DriverManager.getConnection(jbdc_path);
+        String stmt = "INSERT INTO salesrecordentity_lineitementity (`SalesRecordEntity_ID`, `itemsPurchased_ID`) VALUES (?, ?);";
+        PreparedStatement ps = conn.prepareStatement(stmt);
+        ps.setLong(1, Long.parseLong(salesRecordID));
+        ps.setLong(2, lineItemId);
+        return ps.executeUpdate();
+
     }
 
-    public void updateQuantity(String itemID, int quantity, Long countryID) throws Exception {
-        try {
+    public void updateQuantity(String itemID, int quantity, Long countryID) throws SQLException {
+            
             //update quantity of items
             //retrieve lineitem ID and the quantities according to itemID and countryID
-
             Connection conn = DriverManager.getConnection(jbdc_path);
-            String stmt = "select l.ID, l.QUANTITY, s.ID as storagebinID, i.VOLUME "
-                    + "from warehouseentity w, storagebinentity s, "
-                    + "storagebinentity_lineitementity sl, lineitementity l, itementity i, country_ecommerce c "
-                    + "where i.id=l.ITEM_ID and sl.lineItems_ID=l.ID and s.ID=sl.StorageBinEntity_ID "
-                    + "and w.ID=s.WAREHOUSE_ID and w.ID=c.WarehouseEntity_ID and c.CountryEntity_ID=? and l.ITEM_ID=?";
-            PreparedStatement ps = conn.prepareStatement(stmt);
-            ps.setLong(1, countryID);
-            ps.setLong(2, Long.parseLong(itemID));
-            ResultSet rs = ps.executeQuery();
+        String stmt = "select l.ID, l.QUANTITY, s.ID as storagebinID, i.VOLUME "
+                + "from warehouseentity w, storagebinentity s, "
+                + "storagebinentity_lineitementity sl, lineitementity l, itementity i, country_ecommerce c "
+                + "where i.id=l.ITEM_ID and sl.lineItems_ID=l.ID and s.ID=sl.StorageBinEntity_ID "
+                + "and w.ID=s.WAREHOUSE_ID and w.ID=c.WarehouseEntity_ID and c.CountryEntity_ID=? and l.ITEM_ID=?";
+        PreparedStatement ps = conn.prepareStatement(stmt);
+        ps.setLong(1, countryID);
+        ps.setLong(2, Long.parseLong(itemID));
+        ResultSet rs = ps.executeQuery();
 
-            while (rs.next()) {
-                Long lineItemID = rs.getLong(1);
-                int qtyRemaining = rs.getInt(2);
-                Long storageBinID = rs.getLong(3);
-                int itemVolume = rs.getInt(4);
-                if (quantity <= 0) {
-                    break;
-                }
-                if (qtyRemaining - quantity >= 0) {
-                    System.out.println("Quantity fufilled.");
-                    String updateStmt = "UPDATE lineitementity SET QUANTITY = QUANTITY-? WHERE ID = ?";
-                    ps = conn.prepareStatement(updateStmt);
-                    ps.setLong(1, quantity);
-                    ps.setLong(2, lineItemID);
-                    ps.executeUpdate();
-
-                    updateStmt = "UPDATE storagebinentity SET FREEVOLUME = FREEVOLUME+? WHERE ID = ?";
-                    ps = conn.prepareStatement(updateStmt);
-                    ps.setLong(1, quantity * itemVolume);
-                    ps.setLong(2, storageBinID);
-                    ps.executeUpdate();
-
-                    quantity = 0;
-                    break;
-                } else {
-                    quantity -= qtyRemaining;
-                    String updateStmt = "UPDATE lineitementity SET QUANTITY = 0 WHERE ID = ?";
-                    ps = conn.prepareStatement(updateStmt);
-                    ps.setLong(1, lineItemID);
-                    ps.executeUpdate();
-                    System.out.println("Not deducted fully in bin, quantity still needed: " + quantity);
-
-                    updateStmt = "UPDATE storagebinentity SET FREEVOLUME = VOLUME WHERE ID = ?";
-                    ps = conn.prepareStatement(updateStmt);
-                    ps.setLong(1, storageBinID);
-                    ps.executeUpdate();
-                }
+        while (rs.next()) {
+            Long lineItemID = rs.getLong(1);
+            int qtyRemaining = rs.getInt(2);
+            Long storageBinID = rs.getLong(3);
+            int itemVolume = rs.getInt(4);
+            if (quantity <= 0) {
+                break;
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
+            if (qtyRemaining - quantity >= 0) {
+                System.out.println("Quantity fufilled.");
+                String updateStmt = "UPDATE lineitementity SET QUANTITY = QUANTITY-? WHERE ID = ?";
+                ps = conn.prepareStatement(updateStmt);
+                ps.setLong(1, quantity);
+                ps.setLong(2, lineItemID);
+                ps.executeUpdate();
+
+                updateStmt = "UPDATE storagebinentity SET FREEVOLUME = FREEVOLUME+? WHERE ID = ?";
+                ps = conn.prepareStatement(updateStmt);
+                ps.setLong(1, quantity * itemVolume);
+                ps.setLong(2, storageBinID);
+                ps.executeUpdate();
+
+                quantity = 0;
+                break;
+            } else {
+                quantity -= qtyRemaining;
+                String updateStmt = "UPDATE lineitementity SET QUANTITY = 0 WHERE ID = ?";
+                ps = conn.prepareStatement(updateStmt);
+                ps.setLong(1, lineItemID);
+                ps.executeUpdate();
+                System.out.println("Not deducted fully in bin, quantity still needed: " + quantity);
+
+                updateStmt = "UPDATE storagebinentity SET FREEVOLUME = VOLUME WHERE ID = ?";
+                ps = conn.prepareStatement(updateStmt);
+                ps.setLong(1, storageBinID);
+                ps.executeUpdate();
+            }
         }
+    }
+
+    // MemberentityFacadeREST - getMemberDetails
+    public ResultSet getMemberEntity(String email) throws SQLException {
+        Connection conn = DriverManager.getConnection(jbdc_path);
+        String stmt = "SELECT * FROM memberentity m WHERE m.EMAIL=?";
+        PreparedStatement ps = conn.prepareStatement(stmt);
+        ps.setString(1, email);
+        return ps.executeQuery();
     }
 }

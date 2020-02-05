@@ -1,11 +1,6 @@
 package service;
 
-import java.net.URI;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.Date;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
@@ -97,18 +92,18 @@ public class ECommerceFacadeREST {
         
         try {
             Long lineItemId = db.insertLineitementity(quantity, itemID);
-
+            if (lineItemId <= 0L) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
             int result = db.insertSalesrecordentity_lineitementity(salesRecordID, lineItemId);
             if (result == 0) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
-            
+
             db.updateQuantity(itemID, quantity, countryID);
-            
             
             String responseResult = "1";
             return Response.status(Response.Status.CREATED).entity(responseResult + "").build();
-            //return Response.ok(generatedKey + "", MediaType.APPLICATION_JSON).status(Response.Status.CREATED).build();
         } catch (Exception ex) {
             ex.printStackTrace();
             return Response.status(Response.Status.NOT_FOUND).build();

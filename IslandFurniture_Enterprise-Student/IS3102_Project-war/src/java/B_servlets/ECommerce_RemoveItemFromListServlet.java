@@ -31,10 +31,12 @@ public class ECommerce_RemoveItemFromListServlet extends HttpServlet {
             if (deleteArr != null) {
                 for (String SKUremove : deleteArr) {
                     System.out.println("Removing Item(s): " + SKUremove + " from ShoppingCart");
+                    
                     ShoppingCartLineItem lineitem = new ShoppingCartLineItem();
                     lineitem.setSKU(SKUremove);
                     shoppingCart.remove(lineitem);
                 }
+                    
                 session.setAttribute("shoppingCart", shoppingCart);
                 response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?goodMsg=Successfully removed: " + deleteArr.length + " item(s).");
             } else {
