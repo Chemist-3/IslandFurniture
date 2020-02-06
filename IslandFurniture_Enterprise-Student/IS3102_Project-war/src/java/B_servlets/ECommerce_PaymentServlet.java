@@ -34,40 +34,19 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                 response.sendRedirect("/IS3102_Project-war/B/selectCountry.jsp");
                 return;
             }
-
+            
             Long countryID = (Long) session.getAttribute("countryID");
             Member member = (Member) session.getAttribute("member");
             Long memberId = member.getId();
-            
             ArrayList<ShoppingCartLineItem> shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
-            String[] checkoutArr = request.getParameterValues("delete");
-            
-            ArrayList<ShoppingCartLineItem> checkoutCart = new ArrayList<>();
-            
-            
-            
-            if (checkoutArr != null) {
-                for (String checkoutItemSKU : checkoutArr) {
-                    for (ShoppingCartLineItem item : shoppingCart){
-                        if (item.getSKU().equals(checkoutItemSKU)){
-                            checkoutCart.add(item);
-                            break;
-                        }
-                    }
-                }
-            } else {
-                response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error checking out.");
-            }
+
+            // Price calculation
             double amountPaid = 0.0;
-            for (ShoppingCartLineItem item : checkoutCart) {
+            for (ShoppingCartLineItem item : shoppingCart) {
                 amountPaid += item.getPrice() * item.getQuantity();
             }
-            
-            
-            
+
             String salesRecordID = createECommerceTransactionRecordRESTful(memberId, amountPaid, countryID);
-            
-            
             
             if (salesRecordID == null) {
                 //error
@@ -76,7 +55,9 @@ public class ECommerce_PaymentServlet extends HttpServlet {
 
                 return;
             }
-            for (ShoppingCartLineItem item : checkoutCart) {
+            
+            
+            for (ShoppingCartLineItem item : shoppingCart) {
                 String itemID = item.getId();
                 int quantity = item.getQuantity();
                 
@@ -88,9 +69,6 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                 
                 if (result != null) {
                     System.out.println("createECommerceLineItemRecord successful");
-                    for (ShoppingCartLineItem removeItem : checkoutCart){
-                        shoppingCart.remove(removeItem);
-                    }
                 } else {
                     System.out.println("Error creating createECommerceLineItemRecord, returned null.");
                     response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error checking out.");
@@ -98,7 +76,7 @@ public class ECommerce_PaymentServlet extends HttpServlet {
                 }
             }
 
-            session.setAttribute("shoppingCart", shoppingCart);
+            session.setAttribute("shoppingCart", null);
 
             response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?goodMsg=Thank you for shopping at Island Furniture. You have checkout successfully!");
         } catch (Exception ex) {

@@ -14,12 +14,24 @@
         <%
             double finalPrice = 0.0;
         %>
+        <script src="https://www.paypal.com/sdk/js?client-id=AdZRaCXgr5Hhjz_yYSAWeyO7IibtTt5S7r3GBBLY8bU1vlP8VqqLcjV2H1jpSIesz6bPxHoF8qKQSn1e&currency=SGD"></script>
         <script>
 
             var totalPrice = 0;
             for (var i = 0, n = shoppingCart.getItems().size; i < n; i++) {
                 totalPrice += shoppingCart.getItems().get(i).get
             }
+            
+            var checkbox = document.querySelector("input[name=checkbox]");
+
+            checkbox.addEventListener( 'change', function() {
+                if(this.checked) {
+                    document.getElementById("p1").innerHTML = "New text!";
+                } else {
+                    // Checkbox is not checked..
+                }
+            });
+
             function removeItem() {
                 checkboxes = document.getElementsByName('delete');
                 var numOfTicks = 0;
@@ -67,67 +79,13 @@
                 $("#btnCheckout").prop("disabled", true);
                 $("#btnRemove").prop("disabled", true);
                 $(".productDetails").removeAttr("href");
-                $("#paypalSandbox").modal({backdrop: 'static', keyboard: false});
-//                $("html, body").animate({scrollTop: $(document).height() / 3}, "slow");
-//                $("#makePaymentForm").show("slow", function () {   
-//                });
-            }
-            function makePayment() {
-
-                // Add code
-                checkboxes = document.getElementsByName('delete');
-                var numOfTicks = 0;
-                for (var i = 0, n = checkboxes.length; i < n; i++) {
-                    if (checkboxes[i].checked) {
-                        numOfTicks++;
-                    }
-                }
-                if (checkboxes.length == 0 || numOfTicks == 0) {
-                    window.event.returnValue = true;
-                    document.shoppingCart.action = "/IS3102_Project-war/B/SG/shoppingCart.jsp?errMsg=No item(s) selected for payment.";
-                    document.shoppingCart.submit();
-                } else {
-                    window.event.returnValue = true;
-                    document.shoppingCart.action = "../../ECommerce_PaymentServlet";
-                    document.shoppingCart.submit();
-                }
+                $("#paypalModel").modal({backdrop: 'static', keyboard: false});
             }
 
         </script>
 
-        <script>
-            paypal.Buttons({
-                createOrder: function (data, actions) {
-                    return actions.order.create({
-                        purchase_units: [{
-                                amount: {
-                                    total: '30.00',
-                                    currency: 'USD',
-                                }
-                            }]
-                    });
-                },
-                onApprove: function (data, actions) {
-                    return actions.order.capture().then(function (details) {
-                        alert('Transaction completed by ' + details.payer.name.given_name);
-                        // Call your server to save the transaction
-                        return fetch('/paypal-transaction-complete', {
-                            method: 'post',
-                            headers: {
-                                'content-type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                orderID: data.orderID
-                            })
-                        });
-                    });
-                }
-            }).render('#paypal-button-container');
 
-
-
-        </script>
-
+        
         <div class="body">
             <jsp:include page="menu2.jsp" />
             <div role="main" class="main shop">
@@ -241,80 +199,12 @@
                                                     </tbody>
                                                 </table>
                                                 <%if (shoppingCart != null && shoppingCart.size() > 0) {%>
-                                                <div align="left"><a href="#myModal" data-toggle="modal"><button id="btnRemove" class="btn btn-primary">Remove Item(s)</button></a></div>
+                                                <div align="left"><a href="#deleteModel" data-toggle="modal"><button id="btnRemove" class="btn btn-primary">Remove Item(s)</button></a></div>
                                                 <div align="right"><a href="#checkoutModal" data-toggle="modal"><button id="btnCheckout" class="btn btn-primary btn-lg">Check Out</button></a></div>
 
                                                 <%} else {%>
                                                 <div align="right"><a href="#checkoutModal" data-toggle="modal"><button disabled="true" id="btnCheckout" class="btn btn-primary btn-lg">Check Out</button></a></div>
                                                 <%}%>
-                                                <!--                                            </form>
-                                                
-                                                                                            <form id="makePaymentForm" name="makePaymentForm" method="post" hidden>
-                                                                                                <div class="col-md-8">
-                                                                                                    <br>
-                                                                                                    <table>
-                                                                                                        <tbody>
-                                                                                                            <tr>
-                                                                                                        <h4 style="text-align: left">Credit Card Payment Details</h4>
-                                                                                                        </tr>
-                                                                                                        <tr>
-                                                                                                            <td style="padding: 5px">
-                                                                                                                <label>Name on Card: </label>
-                                                                                                            </td>
-                                                                                                            <td style="padding: 5px">
-                                                                                                                <input type="text" class="input-text text" title="name"id="txtName" required>                                                            
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr>
-                                                                                                            <td style="padding: 5px">
-                                                                                                                <label>Card Number: </label>
-                                                                                                            </td>
-                                                                                                            <td style="padding: 5px">
-                                                                                                                <input type="text" class="input-text text " title="cardno" id="txtCardNo" required>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr>
-                                                                                                            <td style="padding: 5px">
-                                                                                                                <label>CVV/CVC2: </label>
-                                                                                                            </td>
-                                                                                                            <td style="padding: 5px">
-                                                                                                                <input type="text" class="input-text text " title="securitycode" id="txtSecuritycode" required>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                
-                                                                                                        <tr>
-                                                                                                            <td style="padding: 5px;">
-                                                                                                                <label>Expiry Date: </label>
-                                                                                                            </td>
-                                                                                                            <td style="width: 300px">
-                                                                                                                <select style="width: 120px; display: inline-block" class="dropdown-header" title="Month">
-                                                                                                                    <option>January</option>
-                                                                                                                    <option>February</option>
-                                                                                                                    <option>March</option>
-                                                                                                                    <option>April</option>
-                                                                                                                    <option>May</option>
-                                                                                                                    <option>June</option>
-                                                                                                                    <option>July</option>
-                                                                                                                    <option>August</option>
-                                                                                                                    <option>September</option>
-                                                                                                                    <option>October</option>
-                                                                                                                    <option>November</option>
-                                                                                                                    <option>December</option>
-                                                                                                                </select>
-                                                                                                                <input type="text" style="width: 60px" class="input-text text" title="year" id="year" required>(eg: 2015)                                                        
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr>
-                                                                                                            <td style="">
-                                                                                                            </td>
-                                                                                                            <td style="padding-top: 20px">
-                                                                                                                <div align="right"><a href="#makePaymentModal" data-toggle="modal"><button class="btn btn-primary">Make Payment</button></a></div>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        </tbody></table>
-                                                                                                </div>
-                                                
-                                                                                            </form>-->
                                         </div>
                                     </div>
                                 </div>
@@ -324,7 +214,7 @@
                 </div>
             </div>
 
-            <div role="dialog" class="modal fade" id="myModal">
+            <div role="dialog" class="modal fade" id="deleteModel">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -340,6 +230,7 @@
                     </div>
                 </div>
             </div>
+                                        
             <div role="dialog" class="modal fade" id="checkoutModal">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -357,24 +248,7 @@
                 </div>
             </div>  
 
-            <div role="dialog" class="modal fade" id="makePaymentModal">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4>Confirm Payment</h4>
-                        </div>
-                        <div class="modal-body">
-                            <p id="messageBox">You are making payment now. Are you sure you want to continue?</p>
-                        </div>
-                        <div class="modal-footer">                        
-                            <input class="btn btn-primary" name="btnPayment" type="submit" value="Confirm" onclick="makePayment()"  />
-                            <a class="btn btn-default" data-dismiss ="modal">Close</a>
-                        </div>
-                    </div>
-                </div>
-            </div>  
-
-            <div role="dialog" class="modal fade" id="paypalSandbox">
+            <div role="dialog" class="modal fade" id="paypalModel">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -382,11 +256,30 @@
                         </div>
                         <div class="modal-body">
                             <div id="paypal-button-container"></div>
-
-                            <script>
-                                paypal.Buttons().render('#paypal-button-container');
-                                // This function displays Smart Payment Buttons on your web page.
-                            </script>
+                                <!-- Paypal scripts  -->
+                                <script>
+                                    paypal.Buttons({
+                                        createOrder: function (data, actions) {
+                                            // This function sets up the details of the transaction, including the amount and line item details.
+                                            return actions.order.create({
+                                                purchase_units: [{
+                                                        amount: {
+                                                            currency_code: "SGD",
+                                                            value: '<%=finalPrice%>'
+                                                        }
+                                                    }]
+                                            });
+                                        },
+                                        onApprove: function(data, actions) {
+                                            return actions.order.capture().then(function(details) {
+                                              alert('Transaction completed by ' + details.payer.name.given_name);
+                                              // Call your server to save the transaction
+                                              document.shoppingCart.action = "../../ECommerce_PaymentServlet";
+                                              document.shoppingCart.submit();
+                                            });
+                                          }
+                                    }).render('#paypal-button-container');
+                                </script>
                         </div>
                     </div>
                 </div>
@@ -403,7 +296,7 @@
             <script src="../../vendor/rs-plugin/js/jquery.themepunch.revolution.js"></script>
             <script src="../../vendor/circle-flip-slideshow/js/jquery.flipshow.js"></script>
             <script src="../../js/views/view.home.js"></script>   
-            <script src="https://www.paypal.com/sdk/js?client-id=AdZRaCXgr5Hhjz_yYSAWeyO7IibtTt5S7r3GBBLY8bU1vlP8VqqLcjV2H1jpSIesz6bPxHoF8qKQSn1e"></script>
+            
         </div>
     </body>
 </html>
