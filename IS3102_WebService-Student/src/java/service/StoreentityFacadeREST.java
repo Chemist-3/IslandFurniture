@@ -1,9 +1,6 @@
 package service;
 
 import Entity.Storeentity;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,6 +90,25 @@ public class StoreentityFacadeREST extends AbstractFacade<Storeentity> {
 
             return Response.ok(qty + "", MediaType.APPLICATION_JSON).build();
 
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+    }
+    
+    //get store infomation in String
+    //this function is used by ECommerce_Payment servlet
+    @GET
+    @Path("getStoreInfomation")
+    @Produces("application/json")
+    public Response getStoreInfomation(@QueryParam("salesRecordID") String salesRecordID) {
+        System.out.println("RESTful: getStoreInfomation() called with salesRecordID=" + salesRecordID);
+        try {
+            ResultSet rs = db.getStoreInfomation(salesRecordID);
+            rs.next();
+            
+            String result = rs.getString("NAME") + ", " + rs.getString("ADDRESS") + " " + rs.getString("POSTALCODE");
+            return Response.ok(result + "", MediaType.APPLICATION_JSON).build();
         } catch (Exception ex) {
             ex.printStackTrace();
             return Response.status(Response.Status.NOT_FOUND).build();

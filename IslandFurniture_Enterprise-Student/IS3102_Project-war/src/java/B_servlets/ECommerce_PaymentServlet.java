@@ -26,9 +26,9 @@ public class ECommerce_PaymentServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try {
-            
+            // retrieve session attributes
             HttpSession session = request.getSession();
-
+            
             URLprefix = (String) session.getAttribute("URLprefix");
             if (URLprefix == null) {
                 response.sendRedirect("/IS3102_Project-war/B/selectCountry.jsp");
@@ -40,48 +40,65 @@ public class ECommerce_PaymentServlet extends HttpServlet {
             Long memberId = member.getId();
             ArrayList<ShoppingCartLineItem> shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
 
-            // Price calculation
+            // price calculation for salesRecord
             double amountPaid = 0.0;
             for (ShoppingCartLineItem item : shoppingCart) {
                 amountPaid += item.getPrice() * item.getQuantity();
             }
 
+            // call ws to insert new salesRecord
             String salesRecordID = createECommerceTransactionRecordRESTful(memberId, amountPaid, countryID);
-            
-            if (salesRecordID == null) {
-                //error
-                System.out.println("Error creating ECommerce Transaction Record. Sales record ID returned 0.");
-                response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error processing transaction.");
 
-                return;
+            // error checking
+            if (salesRecordID == null) {
+                System.out.println("Error creating ECommerce Transaction Record. Sales record ID returned 0.");
+                response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error processing transaction. Please contact us at (65) 6475-7890");
             }
+
+            // LOOP - Check for item quantities again
+            for (ShoppingCartLineItem item : shoppingCart) {
+                // call ws to retrieve and check item quantity
+                int quantity = checkQuantityRESTful(countryID, item.getSKU());
+                
+                //error checking
+                if (quantity < 1) {
+                    response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error checking out. Not enough quantity available. <br> Please contact us at (65) 6475-7890");
+                }
+            } // end of loop
             
             
+            // LOOP - Create lineItem records and update quantity for every unique items in the Shopping Cart
             for (ShoppingCartLineItem item : shoppingCart) {
                 String itemID = item.getId();
                 int quantity = item.getQuantity();
-                
-                
-                //call ws to insert lineitem and salesrecordentity_lineitementity based on salesRecordID and lineItemID
+
+                // call ws to insert lineitem and salesrecordentity_lineitementity based on salesRecordID and lineItemID
+                // and update item quantity and storage bin freevolume
                 String result = createECommerceLineItemRecordRESTful(salesRecordID, itemID, quantity, countryID);
-                
-                
-                
+
+                // error checking
                 if (result != null) {
                     System.out.println("createECommerceLineItemRecord successful");
                 } else {
                     System.out.println("Error creating createECommerceLineItemRecord, returned null.");
-                    response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error checking out.");
-                    return;
+                    response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error checking out. Please contact us at (65) 6475-7890");
                 }
-            }
+            } // end of loop
 
+            // clear shopping cart as items previously are paid for
             session.setAttribute("shoppingCart", null);
-
-            response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?goodMsg=Thank you for shopping at Island Furniture. You have checkout successfully!");
+            
+            // call ws to retrieve store infomation using salesRecordID
+            String storeInfomationString = retrieveStoreInfomationRESTful(salesRecordID);
+            if (storeInfomationString == null){
+                response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?goodMsg=Checkout succcessful, thank you for shopping at Island Furniture!");
+            }
+            // redirect to shoppingCart.jsp with success message and store collection infomation
+            response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?goodMsg=Checkout succcessful, thank you for shopping at Island Furniture! "
+                    + " <br> Please collect your items at: " + storeInfomationString);
         } catch (Exception ex) {
             ex.printStackTrace();
-            response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error checking out.");
+            response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error checking out. Please contact us at (65) 6475-7890");
         }
     }
 
@@ -124,7 +141,44 @@ public class ECommerce_PaymentServlet extends HttpServlet {
         return result;
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+        public int checkQuantityRESTful(Long countryID, String SKU) {
+        Client client = ClientBuilder.newClient();
+        WebTarget target = client
+                .target("http://localhost:8080/IS3102_WebService-Student/webresources/entity.countryentity")
+                .path("getQuantity")
+                .queryParam("countryID", countryID)
+                .queryParam("SKU", SKU);
+        Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+        invocationBuilder.header("some-header", "true");
+        Response response = invocationBuilder.get();
+
+        if (response.getStatus() != 200) {
+            return 0;
+        }
+
+        String quantity = (String) response.readEntity(String.class);
+        return Integer.parseInt(quantity);
+
+    }
+        
+    protected String retrieveStoreInfomationRESTful(String salesRecordID) {
+        Client client = ClientBuilder.newClient();
+        WebTarget target = client
+                .target("http://localhost:8080/IS3102_WebService-Student/webresources/entity.storeentity")
+                .path("getStoreInfomation")
+                .queryParam("salesRecordID", salesRecordID);
+        Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+        Response response = invocationBuilder.get();
+        System.out.println("retrieveStoreInfomationRESTful() status: " + response.getStatus());
+
+        if (response.getStatus() != 200) {
+            return null;
+        }
+        String result = response.readEntity(String.class);
+        return result;
+    }
+
+// <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
      *

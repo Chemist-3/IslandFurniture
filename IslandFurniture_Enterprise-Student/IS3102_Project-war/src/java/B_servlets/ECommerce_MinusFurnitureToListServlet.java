@@ -19,20 +19,26 @@ public class ECommerce_MinusFurnitureToListServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try {
-
+            // retrieve session attributes
             HttpSession session = request.getSession();
             URLprefix = (String) session.getAttribute("URLprefix");
             if (URLprefix == null) {
                 response.sendRedirect("/IS3102_Project-war/B/selectCountry.jsp");
             }
-
+            ArrayList<ShoppingCartLineItem> shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
+            
+            // retrive request parameters
             String SKU = request.getParameter("SKU");
             System.out.println("Minus Item: " + SKU + " from ShoppingCart");
-            ArrayList<ShoppingCartLineItem> shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
+            
+            // check if shoppingCart exists
             if (shoppingCart == null) {
                 response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Error reducing item quantity.");
-            } else {
+            } 
+            // quantity deduction
+            else {
                 for (ShoppingCartLineItem item : shoppingCart) {
+                    // find and target the lineitem which needs to be updated
                     if (item.getSKU().equals(SKU)) {
                         if (item.getQuantity() > 1) {
                             item.setQuantity(item.getQuantity() - 1);
@@ -45,7 +51,10 @@ public class ECommerce_MinusFurnitureToListServlet extends HttpServlet {
 
                 }
             }
+            
+            // overwrite session attribute
             session.setAttribute("shoppingCart", shoppingCart);
+            // redirect to shoppingCart.jsp
             response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?goodMsg=Item quantity reduced successfully!");
 
         } catch (Exception ex) {

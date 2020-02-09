@@ -25,7 +25,7 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try {
-
+            // retrieve session attributes
             HttpSession session = request.getSession();
 
             URLprefix = (String) session.getAttribute("URLprefix");
@@ -35,13 +35,16 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
             }
 
             Long countryID = (Long) session.getAttribute("countryID");
-
+            ArrayList<ShoppingCartLineItem> shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
+            
+            // retrive request parameters
             String id = request.getParameter("id");
             String SKU = request.getParameter("SKU");
             String price = request.getParameter("price");
             String name = request.getParameter("name");
             String imageURL = request.getParameter("imageURL");
-
+            
+            // instantiate and set lineitem object
             ShoppingCartLineItem lineItem = new ShoppingCartLineItem();
             lineItem.setId(id);
             lineItem.setSKU(SKU);
@@ -51,23 +54,29 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
             lineItem.setCountryID(countryID);
             lineItem.setQuantity(1);
 
+            // call ws to retrieve and check item quantity
             int quantity = checkQuantityRESTful(countryID, SKU);
-
-            ArrayList<ShoppingCartLineItem> shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
-
+            //error checking
             if (quantity < 1) {
                 response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Item not added to cart, not enough quantity available.");
                 return;
             }
-
+            
+            // shoppingCart never been instantiated
             if (shoppingCart == null) {
                 shoppingCart = new ArrayList<ShoppingCartLineItem>();
                 shoppingCart.add(lineItem);
-            } else if (!shoppingCart.contains(lineItem)) {
+            } 
+            // shoppingCart exists but not the item (add the item into cart)
+            else if (!shoppingCart.contains(lineItem)) {
                 shoppingCart.add(lineItem);
-            } else if (shoppingCart.contains(lineItem)) {
+            } 
+            // shoppingCart and lineitem exists (update lineitem quantity)
+            else if (shoppingCart.contains(lineItem)) {
                 for (ShoppingCartLineItem item : shoppingCart) {
+                    //find and target the lineitem which needs to be updated
                     if (item.equals(lineItem)) {
+                        // item quantity check
                         if (quantity < item.getQuantity() + 1) {
                             response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Item not added to cart, not enough quantity available.");
                             return;
@@ -78,8 +87,10 @@ public class ECommerce_AddFurnitureToListServlet extends HttpServlet {
                     }
                 }
             }
+            
+            // set or overwrite session attribute
             session.setAttribute("shoppingCart", shoppingCart);
-
+            // redirect to shoppingCart.jsp
             response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?goodMsg=Item successfully added into the cart!");
         } catch (Exception ex) {
             ex.printStackTrace();

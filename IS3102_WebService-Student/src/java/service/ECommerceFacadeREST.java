@@ -52,25 +52,28 @@ public class ECommerceFacadeREST {
         System.out.println("RESTful: createECommerceTransactionRecord() called with memberID=" + memberID + "  amountPaid=" + amountPaid + " and countryID=" + countryID);
         
         try {
-            
+            // instantiate variables
             String currency = "";
             String storeID = "";
             java.util.Date dt = new java.util.Date();
             java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String currentTime = sdf.format(dt);
             
-            
+            // retrieve storeID and currency
             ResultSet rs = db.getCountryStoreIDAndCurrency(countryID);
             while (rs.next()) {
                 currency = rs.getString("currency");
                 storeID = rs.getString("storeID");
             }
+            // error checking
             if (currency.equals("") || storeID.equals("")) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
 
+            // create new entry in salesrecordentity and retrieve salesRecordID
             Long generatedKey = db.insertSalesrecordentity(amountPaid, currentTime, currency, (new Date()).getTime(), memberID, Integer .parseInt(storeID));
             
+            // error checking
             if (generatedKey > 0L) {
                 return Response.status(Response.Status.CREATED).entity(generatedKey + "").build();
             } else {
@@ -91,17 +94,27 @@ public class ECommerceFacadeREST {
         System.out.println("RESTful: createECommerceLineItemRecord() called with salesRecordID=" + salesRecordID + "  itemID=" + itemID + "quantity=" + quantity + "and countryID=" + countryID);
         
         try {
+            // create new entry in lineitementity and retrieve lineItemID
+            // linked with salesRecord to show which items are sold
             Long lineItemId = db.insertLineitementity(quantity, itemID);
+            
+            // error checking
             if (lineItemId <= 0L) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
+            
+            // link salesRecord and itemRecord
             int result = db.insertSalesrecordentity_lineitementity(salesRecordID, lineItemId);
+            
+            // error checking
             if (result == 0) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
 
+            // update existing item quantities and storage bin freevolume
             db.updateQuantity(itemID, quantity, countryID);
             
+            // return 1 for servlet error checking
             String responseResult = "1";
             return Response.status(Response.Status.CREATED).entity(responseResult + "").build();
         } catch (Exception ex) {

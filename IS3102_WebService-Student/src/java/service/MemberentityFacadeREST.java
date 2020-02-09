@@ -254,20 +254,8 @@ public class MemberentityFacadeREST extends AbstractFacade<Memberentity> {
     public Response updateMemberDetails(@QueryParam("name") String name, @QueryParam("email") String email, @QueryParam("phone") String phone, @QueryParam("address") String address, 
             @QueryParam("securityQuestion") Integer securityQuestion, @QueryParam("securityAnswer") String securityAnswer, @QueryParam("age") Integer age, @QueryParam("income") Integer income) {
         
-        try {
-            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/islandfurniture-it07?zeroDateTimeBehavior=convertToNull&user=root&password=12345");
-            String updateStmt = "UPDATE memberentity SET NAME = ?, PHONE = ?, ADDRESS = ?, SECURITYQUESTION = ?, SECURITYANSWER = ?, AGE = ?, INCOME = ? where EMAIL = ?";
-            PreparedStatement ps = conn.prepareStatement(updateStmt);
-            ps.setString(1, name);
-            ps.setString(2, phone);
-            ps.setString(3, address);
-            ps.setInt(4, securityQuestion);
-            ps.setString(5, securityAnswer);
-            ps.setInt(6, age);
-            ps.setInt(7, income);
-            ps.setString(8, email);
-                      
-            int result = ps.executeUpdate();
+        try {   
+            int result = db.updateMemberEntity(name, phone, address, securityQuestion, securityAnswer, age, income, email);
             
             if(result > 0) {
                 return Response.status(200).build();
@@ -290,22 +278,8 @@ public class MemberentityFacadeREST extends AbstractFacade<Memberentity> {
             // Salt and Hash Generation
             String passwordSalt = generatePasswordSalt();
             String passwordHash = generatePasswordHash(passwordSalt, password);
-            
-            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/islandfurniture-it07?zeroDateTimeBehavior=convertToNull&user=root&password=12345");
-            String updateStmt = "UPDATE memberentity SET NAME = ?, PHONE = ?, ADDRESS = ?, SECURITYQUESTION = ?, SECURITYANSWER = ?, AGE = ?, INCOME = ?, PASSWORDHASH = ?, PASSWORDSALT = ? where EMAIL = ?";
-            PreparedStatement ps = conn.prepareStatement(updateStmt);
-            ps.setString(1, name);
-            ps.setString(2, phone);
-            ps.setString(3, address);
-            ps.setInt(4, securityQuestion);
-            ps.setString(5, securityAnswer);
-            ps.setInt(6, age);
-            ps.setInt(7, income);
-            ps.setString(8, passwordHash);
-            ps.setString(9, passwordSalt);
-            ps.setString(10, email);
                       
-            int result = ps.executeUpdate();
+            int result = db.updateMemberEntityPass(name, phone, address, securityQuestion, securityAnswer, age, income, passwordHash, passwordSalt, email);
             
             if(result > 0) {
                 return Response.status(200).build();

@@ -16,21 +16,12 @@
         %>
         <script src="https://www.paypal.com/sdk/js?client-id=AdZRaCXgr5Hhjz_yYSAWeyO7IibtTt5S7r3GBBLY8bU1vlP8VqqLcjV2H1jpSIesz6bPxHoF8qKQSn1e&currency=SGD"></script>
         <script>
-
+  
             var totalPrice = 0;
             for (var i = 0, n = shoppingCart.getItems().size; i < n; i++) {
                 totalPrice += shoppingCart.getItems().get(i).get
             }
-            
-            var checkbox = document.querySelector("input[name=checkbox]");
 
-            checkbox.addEventListener( 'change', function() {
-                if(this.checked) {
-                    document.getElementById("p1").innerHTML = "New text!";
-                } else {
-                    // Checkbox is not checked..
-                }
-            });
 
             function removeItem() {
                 checkboxes = document.getElementsByName('delete');

@@ -19,25 +19,32 @@ public class ECommerce_RemoveItemFromListServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try {
-            String[] deleteArr = request.getParameterValues("delete");
+            // retrieve session attributes
             HttpSession session = request.getSession();
-
             URLprefix = (String) session.getAttribute("URLprefix");
             if (URLprefix == null) {
                 response.sendRedirect("/IS3102_Project-war/B/selectCountry.jsp");
             }
-
             ArrayList<ShoppingCartLineItem> shoppingCart = (ArrayList<ShoppingCartLineItem>) session.getAttribute("shoppingCart");
+            
+            // retrive request parameters
+            String[] deleteArr = request.getParameterValues("delete");
+            
+            // check if deleteArr is null (avoid nullpointer)
             if (deleteArr != null) {
+                // loop through every item in deleteArr
                 for (String SKUremove : deleteArr) {
                     System.out.println("Removing Item(s): " + SKUremove + " from ShoppingCart");
-                    
+                    // set and target lineitem which needs to be deleted
                     ShoppingCartLineItem lineitem = new ShoppingCartLineItem();
                     lineitem.setSKU(SKUremove);
+                    // deletion
                     shoppingCart.remove(lineitem);
                 }
-                    
+                
+                // overwrite session attribute
                 session.setAttribute("shoppingCart", shoppingCart);
+                // redirect to shoppingCart.jsp
                 response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?goodMsg=Successfully removed: " + deleteArr.length + " item(s).");
             } else {
                 response.sendRedirect("/IS3102_Project-war/B/" + URLprefix + "shoppingCart.jsp?errMsg=Nothing selected.");

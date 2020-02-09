@@ -9,8 +9,13 @@ import java.sql.Statement;
 
 public class dbaccess {
 
+    // Global path
     private String jbdc_path = "jdbc:mysql://localhost:3306/islandfurniture-it07?zeroDateTimeBehavior=convertToNull&user=root&password=12345";
 
+    
+    /**************************************
+     *       StoreentityFacadeREST          *
+    ***************************************/
     public int getQuantityWithStoreID(Long storeID, String SKU) throws SQLException {
         int quantity = 0;
         Connection conn = DriverManager.getConnection(jbdc_path);
@@ -27,6 +32,18 @@ public class dbaccess {
         return quantity;
     }
 
+    public ResultSet getStoreInfomation(String salesRecordID) throws SQLException {
+        Connection conn = DriverManager.getConnection(jbdc_path);
+        String stmt = "SELECT se.* FROM storeentity se, salesrecordentity sre where sre.STORE_ID=se.ID and sre.ID=?;";
+        PreparedStatement ps = conn.prepareStatement(stmt);
+        ps.setLong(1, Long.parseLong(salesRecordID));
+        return ps.executeQuery();
+    }
+
+    
+    /**************************************
+     *     CountryentityFacadeREST        *
+    ***************************************/
     public int getQuantityWithCountryID(Long countryID, String SKU) throws SQLException {
         int quantity = 0;
         Connection conn = DriverManager.getConnection(jbdc_path);
@@ -43,6 +60,10 @@ public class dbaccess {
         return quantity;
     }
 
+    
+    /**************************************
+     *       ECommerceFacadeREST          *
+    ***************************************/
     public ResultSet getCountryStoreIDAndCurrency(Long countryID) throws SQLException {
         Connection conn = DriverManager.getConnection(jbdc_path);
         String stmt = "SELECT c.currency, s.ID as storeID FROM countryentity c,country_ecommerce ce, storeentity s "
@@ -105,10 +126,10 @@ public class dbaccess {
     }
 
     public void updateQuantity(String itemID, int quantity, Long countryID) throws SQLException {
-            
-            //update quantity of items
-            //retrieve lineitem ID and the quantities according to itemID and countryID
-            Connection conn = DriverManager.getConnection(jbdc_path);
+
+        //update quantity of items
+        //retrieve lineitem ID and the quantity according to itemID and countryID
+        Connection conn = DriverManager.getConnection(jbdc_path);
         String stmt = "select l.ID, l.QUANTITY, s.ID as storagebinID, i.VOLUME "
                 + "from warehouseentity w, storagebinentity s, "
                 + "storagebinentity_lineitementity sl, lineitementity l, itementity i, country_ecommerce c "
@@ -149,7 +170,8 @@ public class dbaccess {
                 ps = conn.prepareStatement(updateStmt);
                 ps.setLong(1, lineItemID);
                 ps.executeUpdate();
-                System.out.println("Not deducted fully in bin, quantity still needed: " + quantity);
+                
+                System.out.println("Not enough quantity in bin, quantity needed: " + quantity);
 
                 updateStmt = "UPDATE storagebinentity SET FREEVOLUME = VOLUME WHERE ID = ?";
                 ps = conn.prepareStatement(updateStmt);
@@ -159,12 +181,50 @@ public class dbaccess {
         }
     }
 
-    // MemberentityFacadeREST - getMemberDetails
+    /**************************************
+     *       MemberentityFacadeREST       *
+    ***************************************/
     public ResultSet getMemberEntity(String email) throws SQLException {
         Connection conn = DriverManager.getConnection(jbdc_path);
         String stmt = "SELECT * FROM memberentity m WHERE m.EMAIL=?";
         PreparedStatement ps = conn.prepareStatement(stmt);
         ps.setString(1, email);
         return ps.executeQuery();
+    }
+
+    public int updateMemberEntity(String name, String phone, String address, int securityQuestion,
+            String securityAnswer, int age, int income, String email) throws SQLException {
+        Connection conn = DriverManager.getConnection(jbdc_path);
+        String updateStmt = "UPDATE memberentity SET NAME = ?, PHONE = ?, ADDRESS = ?, SECURITYQUESTION = ?, SECURITYANSWER = ?, AGE = ?, INCOME = ? where EMAIL = ?";
+        PreparedStatement ps = conn.prepareStatement(updateStmt);
+        ps.setString(1, name);
+        ps.setString(2, phone);
+        ps.setString(3, address);
+        ps.setInt(4, securityQuestion);
+        ps.setString(5, securityAnswer);
+        ps.setInt(6, age);
+        ps.setInt(7, income);
+        ps.setString(8, email);
+
+        return ps.executeUpdate();
+    }
+    
+    public int updateMemberEntityPass(String name, String phone, String address, int securityQuestion,
+            String securityAnswer, int age, int income, String passwordHash, String passwordSalt, String email) throws SQLException {
+        Connection conn = DriverManager.getConnection(jbdc_path);
+        String updateStmt = "UPDATE memberentity SET NAME = ?, PHONE = ?, ADDRESS = ?, SECURITYQUESTION = ?, SECURITYANSWER = ?, AGE = ?, INCOME = ?, PASSWORDHASH = ?, PASSWORDSALT = ? where EMAIL = ?";
+        PreparedStatement ps = conn.prepareStatement(updateStmt);
+        ps.setString(1, name);
+        ps.setString(2, phone);
+        ps.setString(3, address);
+        ps.setInt(4, securityQuestion);
+        ps.setString(5, securityAnswer);
+        ps.setInt(6, age);
+        ps.setInt(7, income);
+        ps.setString(8, passwordHash);
+        ps.setString(9, passwordSalt);
+        ps.setString(10, email);
+
+        return ps.executeUpdate();
     }
 }
