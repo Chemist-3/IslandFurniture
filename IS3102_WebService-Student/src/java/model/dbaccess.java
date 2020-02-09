@@ -37,6 +37,7 @@ public class dbaccess {
         String stmt = "SELECT se.* FROM storeentity se, salesrecordentity sre where sre.STORE_ID=se.ID and sre.ID=?;";
         PreparedStatement ps = conn.prepareStatement(stmt);
         ps.setLong(1, Long.parseLong(salesRecordID));
+        conn.close();
         return ps.executeQuery();
     }
 
@@ -72,6 +73,7 @@ public class dbaccess {
         ps.setLong(1, countryID);
         ResultSet rs = ps.executeQuery();
 
+        conn.close();
         return rs;
     }
 
@@ -95,6 +97,7 @@ public class dbaccess {
         while (rs.next()) {
             generatedKey = rs.getLong(1);
         }
+        conn.close();
         return generatedKey;
     }
 
@@ -111,6 +114,7 @@ public class dbaccess {
         while (rs.next()) {
             lineItemId = rs.getLong(1);
         }
+        conn.close();
         return lineItemId;
     }
 
@@ -121,6 +125,7 @@ public class dbaccess {
         PreparedStatement ps = conn.prepareStatement(stmt);
         ps.setLong(1, Long.parseLong(salesRecordID));
         ps.setLong(2, lineItemId);
+        conn.close();
         return ps.executeUpdate();
 
     }
@@ -178,6 +183,7 @@ public class dbaccess {
                 ps.setLong(1, storageBinID);
                 ps.executeUpdate();
             }
+            conn.close();
         }
     }
 
@@ -189,6 +195,7 @@ public class dbaccess {
         String stmt = "SELECT * FROM memberentity m WHERE m.EMAIL=?";
         PreparedStatement ps = conn.prepareStatement(stmt);
         ps.setString(1, email);
+        conn.close();
         return ps.executeQuery();
     }
 
@@ -205,7 +212,8 @@ public class dbaccess {
         ps.setInt(6, age);
         ps.setInt(7, income);
         ps.setString(8, email);
-
+        
+        conn.close();
         return ps.executeUpdate();
     }
     
@@ -225,6 +233,7 @@ public class dbaccess {
         ps.setString(9, passwordSalt);
         ps.setString(10, email);
 
+        conn.close();
         return ps.executeUpdate();
     }
 }
