@@ -1,3 +1,4 @@
+
 package service;
 
 import Entity.Countryentity;
@@ -9,6 +10,7 @@ import javax.persistence.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import model.dbaccess;
 
 @Stateless
 @Path("entity.countryentity")
@@ -17,6 +19,8 @@ public class CountryentityFacadeREST extends AbstractFacade<Countryentity> {
     @PersistenceContext(unitName = "WebService")
     private EntityManager em;
 
+    private dbaccess db = new dbaccess();
+    
     public CountryentityFacadeREST() {
         super(Countryentity.class);
     }
@@ -85,6 +89,22 @@ public class CountryentityFacadeREST extends AbstractFacade<Countryentity> {
             countryList.add(country);
         }
         return countryList;
+    }
+    
+    @GET
+    @Path("getQuantity")
+    @Produces({"application/json"})
+    public Response getQuantity(@QueryParam("countryID") Long countryID, @QueryParam("SKU") String SKU){
+        System.out.println("RESTful: getQuantity() called with countryID=" + countryID + " and SKU=" + SKU);
+        try{         
+            int qty = db.getQuantityWithCountryID(countryID, SKU);
+            
+            return Response.ok(qty + "", MediaType.APPLICATION_JSON).build();
+            
+        }catch (Exception ex){
+            ex.printStackTrace();
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
     }
     
     @Override
