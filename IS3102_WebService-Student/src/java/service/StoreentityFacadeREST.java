@@ -1,6 +1,8 @@
 package service;
 
 import Entity.Storeentity;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +30,8 @@ public class StoreentityFacadeREST extends AbstractFacade<Storeentity> {
     @PersistenceContext(unitName = "WebService")
     private EntityManager em;
 
-    private dbaccess db = new dbaccess();
+    private final String jbdc_path = "jdbc:mysql://localhost:3306/islandfurniture-it07?zeroDateTimeBehavior=convertToNull&user=root&password=12345";
+    private final dbaccess db = new dbaccess();
     
     public StoreentityFacadeREST() {
         super(Storeentity.class);
@@ -86,8 +89,10 @@ public class StoreentityFacadeREST extends AbstractFacade<Storeentity> {
     public Response getItemQuantityOfStore(@QueryParam("storeID") Long storeID, @QueryParam("SKU") String SKU) {
         System.out.println("RESTful: getQuantity() called with storeID=" + storeID + " and SKU=" + SKU);
         try {
-            int qty = db.getQuantityWithStoreID(storeID, SKU);
+            Connection conn = DriverManager.getConnection(jbdc_path);
+            int qty = db.getQuantityWithStoreID(conn, storeID, SKU);
 
+            conn.close();
             return Response.ok(qty + "", MediaType.APPLICATION_JSON).build();
 
         } catch (Exception ex) {
@@ -104,10 +109,13 @@ public class StoreentityFacadeREST extends AbstractFacade<Storeentity> {
     public Response getStoreInfomation(@QueryParam("salesRecordID") String salesRecordID) {
         System.out.println("RESTful: getStoreInfomation() called with salesRecordID=" + salesRecordID);
         try {
-            ResultSet rs = db.getStoreInfomation(salesRecordID);
+            Connection conn = DriverManager.getConnection(jbdc_path);
+            ResultSet rs = db.getStoreInfomation(conn, salesRecordID);
             rs.next();
             
             String result = rs.getString("NAME") + ", " + rs.getString("ADDRESS") + " " + rs.getString("POSTALCODE");
+            
+            conn.close();
             return Response.ok(result + "", MediaType.APPLICATION_JSON).build();
         } catch (Exception ex) {
             ex.printStackTrace();

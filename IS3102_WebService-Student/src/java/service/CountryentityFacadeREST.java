@@ -19,7 +19,8 @@ public class CountryentityFacadeREST extends AbstractFacade<Countryentity> {
     @PersistenceContext(unitName = "WebService")
     private EntityManager em;
 
-    private dbaccess db = new dbaccess();
+    private final String jbdc_path = "jdbc:mysql://localhost:3306/islandfurniture-it07?zeroDateTimeBehavior=convertToNull&user=root&password=12345";
+    private final dbaccess db = new dbaccess();
     
     public CountryentityFacadeREST() {
         super(Countryentity.class);
@@ -96,11 +97,12 @@ public class CountryentityFacadeREST extends AbstractFacade<Countryentity> {
     @Produces({"application/json"})
     public Response getQuantity(@QueryParam("countryID") Long countryID, @QueryParam("SKU") String SKU){
         System.out.println("RESTful: getQuantity() called with countryID=" + countryID + " and SKU=" + SKU);
-        try{         
-            int qty = db.getQuantityWithCountryID(countryID, SKU);
+        try{
+            Connection conn = DriverManager.getConnection(jbdc_path);
+            int qty = db.getQuantityWithCountryID(conn, countryID, SKU);
             
+            conn.close();
             return Response.ok(qty + "", MediaType.APPLICATION_JSON).build();
-            
         }catch (Exception ex){
             ex.printStackTrace();
             return Response.status(Response.Status.NOT_FOUND).build();

@@ -1,5 +1,7 @@
 package service;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.util.Date;
 import javax.ws.rs.core.Context;
@@ -22,7 +24,8 @@ public class ECommerceFacadeREST {
     public ECommerceFacadeREST() {
     }
 
-    private dbaccess db = new dbaccess();
+    private final String jbdc_path = "jdbc:mysql://localhost:3306/islandfurniture-it07?zeroDateTimeBehavior=convertToNull&user=root&password=12345";
+    private final dbaccess db = new dbaccess();
     
     
     @GET
@@ -52,6 +55,8 @@ public class ECommerceFacadeREST {
         System.out.println("RESTful: createECommerceTransactionRecord() called with memberID=" + memberID + "  amountPaid=" + amountPaid + " and countryID=" + countryID);
         
         try {
+            // Get database connection obj
+            Connection conn = DriverManager.getConnection(jbdc_path);
             // instantiate variables
             String currency = "";
             String storeID = "";
@@ -60,23 +65,26 @@ public class ECommerceFacadeREST {
             String currentTime = sdf.format(dt);
             
             // retrieve storeID and currency
-            ResultSet rs = db.getCountryStoreIDAndCurrency(countryID);
+            ResultSet rs = db.getCountryStoreIDAndCurrency(conn, countryID);
             while (rs.next()) {
                 currency = rs.getString("currency");
                 storeID = rs.getString("storeID");
             }
             // error checking
             if (currency.equals("") || storeID.equals("")) {
+                conn.close();
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
 
             // create new entry in salesrecordentity and retrieve salesRecordID
-            Long generatedKey = db.insertSalesrecordentity(amountPaid, currentTime, currency, (new Date()).getTime(), memberID, Integer .parseInt(storeID));
+            Long generatedKey = db.insertSalesrecordentity(conn, amountPaid, currentTime, currency, (new Date()).getTime(), memberID, Integer .parseInt(storeID));
             
             // error checking
             if (generatedKey > 0L) {
+                conn.close();
                 return Response.status(Response.Status.CREATED).entity(generatedKey + "").build();
             } else {
+                conn.close();
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
         } catch (Exception ex) {
@@ -94,28 +102,35 @@ public class ECommerceFacadeREST {
         System.out.println("RESTful: createECommerceLineItemRecord() called with salesRecordID=" + salesRecordID + "  itemID=" + itemID + "quantity=" + quantity + "and countryID=" + countryID);
         
         try {
+            // Get database connection obj
+            Connection conn = DriverManager.getConnection(jbdc_path);
+            
             // create new entry in lineitementity and retrieve lineItemID
             // linked with salesRecord to show which items are sold
-            Long lineItemId = db.insertLineitementity(quantity, itemID);
+            Long lineItemId = db.insertLineitementity(conn, quantity, itemID);
             
             // error checking
             if (lineItemId <= 0L) {
+                conn.close();
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
             
             // link salesRecord and itemRecord
-            int result = db.insertSalesrecordentity_lineitementity(salesRecordID, lineItemId);
+            int result = db.insertSalesrecordentity_lineitementity(conn, salesRecordID, lineItemId);
             
             // error checking
             if (result == 0) {
+                conn.close();
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
 
             // update existing item quantities and storage bin freevolume
-            db.updateQuantity(itemID, quantity, countryID);
+            db.updateQuantity(conn, itemID, quantity, countryID);
             
             // return 1 for servlet error checking
             String responseResult = "1";
+            
+            conn.close();
             return Response.status(Response.Status.CREATED).entity(responseResult + "").build();
         } catch (Exception ex) {
             ex.printStackTrace();

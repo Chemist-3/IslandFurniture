@@ -5,7 +5,6 @@ import Entity.Lineitementity;
 import Entity.Member;
 import Entity.Memberentity;
 import Entity.Qrphonesyncentity;
-import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -13,10 +12,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 import javax.ejb.Stateless;
@@ -32,11 +29,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import model.dbaccess;
 
 @Stateless
@@ -46,7 +40,8 @@ public class MemberentityFacadeREST extends AbstractFacade<Memberentity> {
     @PersistenceContext(unitName = "WebService")
     private EntityManager em;
 
-    private dbaccess db = new dbaccess();
+    private final String jbdc_path = "jdbc:mysql://localhost:3306/islandfurniture-it07?zeroDateTimeBehavior=convertToNull&user=root&password=12345";
+    private final dbaccess db = new dbaccess();
     
     public MemberentityFacadeREST() {
         super(Memberentity.class);
@@ -223,7 +218,8 @@ public class MemberentityFacadeREST extends AbstractFacade<Memberentity> {
     public Response getMemberDetails(@QueryParam("memberEmail") String email) {
 
         try {
-            ResultSet rs = db.getMemberEntity(email);
+            Connection conn = DriverManager.getConnection(jbdc_path);
+            ResultSet rs = db.getMemberEntity(conn, email);
             rs.next();
 
             Member member = new Member();
@@ -240,6 +236,7 @@ public class MemberentityFacadeREST extends AbstractFacade<Memberentity> {
             member.setAge(rs.getInt("AGE"));
             member.setIncome(rs.getInt("INCOME"));
 
+            conn.close();
             return Response.status(200).entity(member).build();
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -255,11 +252,14 @@ public class MemberentityFacadeREST extends AbstractFacade<Memberentity> {
             @QueryParam("securityQuestion") Integer securityQuestion, @QueryParam("securityAnswer") String securityAnswer, @QueryParam("age") Integer age, @QueryParam("income") Integer income) {
         
         try {   
-            int result = db.updateMemberEntity(name, phone, address, securityQuestion, securityAnswer, age, income, email);
+            Connection conn = DriverManager.getConnection(jbdc_path);
+            int result = db.updateMemberEntity(conn, name, phone, address, securityQuestion, securityAnswer, age, income, email);
             
             if(result > 0) {
+                conn.close();
                 return Response.status(200).build();
             }else{
+                conn.close();
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
             }
         } catch (Exception ex) {
@@ -278,13 +278,16 @@ public class MemberentityFacadeREST extends AbstractFacade<Memberentity> {
             // Salt and Hash Generation
             String passwordSalt = generatePasswordSalt();
             String passwordHash = generatePasswordHash(passwordSalt, password);
-                      
-            int result = db.updateMemberEntityPass(name, phone, address, securityQuestion, securityAnswer, age, income, passwordHash, passwordSalt, email);
+            
+            Connection conn = DriverManager.getConnection(jbdc_path);
+            int result = db.updateMemberEntityPass(conn, name, phone, address, securityQuestion, securityAnswer, age, income, passwordHash, passwordSalt, email);
             
             if(result > 0) {
+                conn.close();
                 return Response.status(200).build();
             }else{
                 System.out.println("SQL Error");
+                conn.close();
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
             }
         } catch (Exception ex) {
