@@ -3,7 +3,7 @@
 ![CancerStage](https://img.shields.io/badge/cancer-terminal-red?style=flat-square&logo=appveyor)
 
 # IslandFurniture
-Web Development for IslandFurniture for ST293Z Software Engineering Practice 2019/2020 Semester 2 CA4 Assignment
+Web Development for IslandFurniture for ST293Z Software Engineering Practice 2019/2020 Semester 2 CA5 Assignment
 
 <!-- TABLE OF CONTENTS -->
 ## Table of Contents
