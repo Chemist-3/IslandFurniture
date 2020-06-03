@@ -10,7 +10,6 @@ Web Development for IslandFurniture for ST293Z Software Engineering Practice 201
 * [Getting Started](#getting-started)
   * [Prerequisites](#prerequisites)
   * [Installation and Build](#installation-and-build)
-* [Contributing](#contributing)
 * [Contact](#contact)
 
 <!-- GETTING STARTED -->
@@ -38,17 +37,6 @@ git clone https://github.com/Snowdrifft/IslandFurniture.git
 3. Clean and Build IS3102_Project-ejb if necessary.
 4. Run IS3102_Project-Student, wait till browser popup before procceding to next step.
 5. Deploy IS3102_WebServices-Student.
-
-<!-- CONTRIBUTING -->
-## Contributing
-
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 <!-- CONTACT -->
 ## Contact
